@@ -59,6 +59,7 @@ public class CommunityCollectionLinkRepository extends AbstractDSpaceRestReposit
             if (community == null) {
                 throw new ResourceNotFoundException("No such community: " + communityId);
             }
+            context.turnOffAuthorisationSystem();
             Pageable pageable = utils.getPageable(optionalPageable);
             List<Collection> collections = new LinkedList<Collection>();
             IndexObjectFactoryFactory indexObjectFactory = IndexObjectFactoryFactory.getInstance();
@@ -78,6 +79,7 @@ public class CommunityCollectionLinkRepository extends AbstractDSpaceRestReposit
                 Collection c = ((IndexableCollection) solrCol).getIndexedObject();
                 collections.add(c);
             }
+            context.restoreAuthSystemState();
             return converter.toRestPage(collections, pageable, tot, utils.obtainProjection());
         } catch (SQLException | SearchServiceException e) {
             throw new RuntimeException(e.getMessage(), e);
