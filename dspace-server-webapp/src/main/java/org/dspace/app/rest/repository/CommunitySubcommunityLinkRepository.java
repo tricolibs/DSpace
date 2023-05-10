@@ -75,7 +75,6 @@ public class CommunitySubcommunityLinkRepository extends AbstractDSpaceRestRepos
                 Community c = ((IndexableCommunity) solrCommunities).getIndexedObject();
                 publicSubcommunities.add(c);
             }
-            context.restoreAuthSystemState();
             return converter.toRestPage(publicSubcommunities, pageable, tot, utils.obtainProjection());
         } catch (SQLException | SearchServiceException e) {
             throw new RuntimeException(e.getMessage(), e);
