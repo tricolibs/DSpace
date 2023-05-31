@@ -58,10 +58,14 @@
    <step-definitions>
       <step-definition id="collection">
          <heading/>
+          <!--
          <processing-class>org.dspace.submit.step.SelectCollectionStep</processing-class>
+         -->
+         <processing-class>org.dspace.app.rest.submit.step.CollectionStep</processing-class>
          <type>collection</type>
          <scope visibility="hidden" visibilityOutside="hidden">submission</scope>
       </step-definition>
+       <!--
       <step-definition id="complete">
          <heading>submit.progressbar.complete</heading>
          <processing-class>org.dspace.submit.step.CompleteStep</processing-class>
@@ -72,6 +76,7 @@
          <processing-class>org.dspace.submit.step.SampleStep</processing-class>
          <type>sample</type>
       </step-definition>
+      -->
       <step-definition mandatory="true" id="swatmeetingpage1">
          <heading>submit.progressbar.describe.step1</heading>
          <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
