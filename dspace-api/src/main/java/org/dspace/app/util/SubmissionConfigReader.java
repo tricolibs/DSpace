@@ -628,7 +628,12 @@ public class SubmissionConfigReader {
                     DSpaceObject result = HandleServiceFactory.getInstance().getHandleService()
                                                               .resolveToObject(context, handle);
                     if (result != null) {
-                        results.add((Collection) result);
+                        try {
+                            results.add((Collection) result);
+                        } catch (Exception e) {
+                            throw new IllegalStateException(String.format("Handle: %s ResHandle: %s, ResName: %s, ResDetails: %s",
+                                    handle, result.getHandle(), result.getName(), result.getDetails()));
+                        }
                     }
                 }
             }

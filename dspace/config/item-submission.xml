@@ -3,23 +3,6 @@
   SYSTEM "item-submission.dtd">
 <item-submission>
    <submission-map>
-      <name-map collection-handle="10066/10415" submission-name="swattheses"/>
-      <name-map collection-handle="10066/10411" submission-name="swattheses"/>
-      <name-map collection-handle="10066/10222" submission-name="swattheses"/>
-      <name-map collection-handle="10066/6377" submission-name="swatmeeting"/>
-      <name-map collection-handle="10066/12213" submission-name="swattheses"/>
-      <name-map collection-handle="10066/10922" submission-name="swatwnr"/>
-      <name-map collection-handle="10066/7168" submission-name="swathistorytheses"/>
-      <name-map collection-handle="10066/4099" submission-name="swattheses"/>
-      <name-map collection-handle="10066/6953" submission-name="swattheses"/>
-      <name-map collection-handle="10066/9294" submission-name="swattheses"/>
-      <name-map collection-handle="10066/12689" submission-name="swattheses"/>
-      <name-map collection-handle="10066/12565" submission-name="swattheses"/>
-      <name-map collection-handle="10066/9213" submission-name="swattheses"/>
-      <name-map collection-handle="10066/14114" submission-name="swattheses"/>
-      <name-map collection-handle="10066/14332" submission-name="swattheses"/>
-      <name-map collection-handle="10066/18461" submission-name="swattheses"/>
-      <name-map collection-handle="10066/9213" submission-name="swathistorytheses"/>
       <name-map collection-handle="10066/453" submission-name="hctheses"/>
       <name-map collection-handle="10066/349" submission-name="hctheses"/>
       <name-map collection-handle="10066/348" submission-name="hctheses"/>
@@ -38,16 +21,11 @@
       <name-map collection-handle="10066/335" submission-name="hctheses"/>
       <name-map collection-handle="10066/334" submission-name="hctheses"/>
       <name-map collection-handle="10066/333" submission-name="hctheses"/>
-      <name-map collection-handle="10066/332" submission-name="hctheses"/>
       <name-map collection-handle="10066/331" submission-name="hctheses"/>
       <name-map collection-handle="10066/330" submission-name="hctheses"/>
       <name-map collection-handle="10066/329" submission-name="hctheses"/>
       <name-map collection-handle="10066/328" submission-name="hctheses"/>
       <name-map collection-handle="10066/327" submission-name="hctheses"/>
-      <name-map collection-handle="10066/971" submission-name="hctheses"/>
-      <name-map collection-handle="10066/822" submission-name="hctheses"/>
-      <name-map collection-handle="10066/1182" submission-name="hctheses"/>
-      <name-map collection-handle="10066/105" submission-name="hctheses"/>
       <name-map collection-handle="10066/1467" submission-name="hctheses"/>
       <name-map collection-handle="10066/1582" submission-name="hctheses"/>
       <name-map collection-handle="10066/1319" submission-name="hctheses"/>
@@ -58,44 +36,9 @@
    <step-definitions>
       <step-definition id="collection">
          <heading/>
-          <!--
-         <processing-class>org.dspace.submit.step.SelectCollectionStep</processing-class>
-         -->
          <processing-class>org.dspace.app.rest.submit.step.CollectionStep</processing-class>
          <type>collection</type>
          <scope visibility="hidden" visibilityOutside="hidden">submission</scope>
-      </step-definition>
-       <!--
-      <step-definition id="complete">
-         <heading>submit.progressbar.complete</heading>
-         <processing-class>org.dspace.submit.step.CompleteStep</processing-class>
-         <type>submission-form</type>
-      </step-definition>
-      <step-definition id="sample">
-         <heading>Sample</heading>
-         <processing-class>org.dspace.submit.step.SampleStep</processing-class>
-         <type>sample</type>
-      </step-definition>
-      -->
-      <step-definition mandatory="true" id="swatmeetingpage1">
-         <heading>submit.progressbar.describe.step1</heading>
-         <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
-         <type>submission-form</type>
-      </step-definition>
-      <step-definition mandatory="true" id="swathistorythesespage1">
-         <heading>submit.progressbar.describe.step1</heading>
-         <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
-         <type>submission-form</type>
-      </step-definition>
-      <step-definition mandatory="true" id="swatwnrpage1">
-         <heading>submit.progressbar.describe.step1</heading>
-         <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
-         <type>submission-form</type>
-      </step-definition>
-      <step-definition mandatory="true" id="swatthesespage1">
-         <heading>submit.progressbar.describe.step1</heading>
-         <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
-         <type>submission-form</type>
       </step-definition>
       <step-definition mandatory="true" id="hcthesespage1">
          <heading>submit.progressbar.describe.step1</heading>
@@ -117,11 +60,6 @@
          <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
          <type>submission-form</type>
       </step-definition>
-      <step-definition mandatory="true" id="onepage1">
-         <heading>submit.progressbar.describe.step1</heading>
-         <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
-         <type>submission-form</type>
-      </step-definition>
       <step-definition id="upload">
          <heading>submit.progressbar.upload</heading>
          <processing-class>org.dspace.app.rest.submit.step.UploadStep</processing-class>
@@ -135,30 +73,6 @@
       </step-definition>
    </step-definitions>
    <submission-definitions>
-      <submission-process name="swatmeeting">
-         <step id="collection"/>
-         <step id="swatmeetingpage1"/>
-         <step id="upload"/>
-         <step id="license"/>
-      </submission-process>
-      <submission-process name="swathistorytheses">
-         <step id="collection"/>
-         <step id="swathistorythesespage1"/>
-         <step id="upload"/>
-         <step id="license"/>
-      </submission-process>
-      <submission-process name="swatwnr">
-         <step id="collection"/>
-         <step id="swatwnrpage1"/>
-         <step id="upload"/>
-         <step id="license"/>
-      </submission-process>
-      <submission-process name="swattheses">
-         <step id="collection"/>
-         <step id="swatthesespage1"/>
-         <step id="upload"/>
-         <step id="license"/>
-      </submission-process>
       <submission-process name="hctheses">
          <step id="collection"/>
          <step id="hcthesespage1"/>
@@ -170,12 +84,6 @@
          <step id="collection"/>
          <step id="traditionalpage1"/>
          <step id="traditionalpage2"/>
-         <step id="upload"/>
-         <step id="license"/>
-      </submission-process>
-      <submission-process name="one">
-         <step id="collection"/>
-         <step id="onepage1"/>
          <step id="upload"/>
          <step id="license"/>
       </submission-process>
