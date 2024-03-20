@@ -298,7 +298,7 @@ public class ShibAuthentication implements AuthenticationMethod {
                 return context.getSpecialGroups();
             }
 
-            log.debug("Starting to determine special groups");
+            log.info("Starting to determine special groups");
             String[] defaultRoles = configurationService.getArrayProperty("authentication-shibboleth.default-roles");
             String roleHeader = configurationService.getProperty("authentication-shibboleth.role-header");
             boolean ignoreScope = configurationService
@@ -320,12 +320,12 @@ public class ShibAuthentication implements AuthenticationMethod {
                 if (defaultRoles != null) {
                     affiliations = Arrays.asList(defaultRoles);
                 }
-                log.debug(
+                log.info(
                     "Failed to find Shibboleth role header, '" + roleHeader + "', falling back to the default roles: " +
                         "'" + StringUtils
                         .join(defaultRoles, ",") + "'");
             } else {
-                log.debug("Found Shibboleth role header: '" + roleHeader + "' = '" + affiliations + "'");
+                log.info("Found Shibboleth role header: '" + roleHeader + "' = '" + affiliations + "'");
             }
 
             // Loop through each affiliation
@@ -356,13 +356,13 @@ public class ShibAuthentication implements AuthenticationMethod {
                     }
 
                     if (groupNames == null) {
-                        log.debug(
+                        log.info(
                             "Unable to find role mapping for the value, '" + affiliation + "', there should be a " +
                                 "mapping in config/modules/authentication-shibboleth.cfg:  role." + affiliation + " =" +
                                 " <some group name>");
                         continue;
                     } else {
-                        log.debug(
+                        log.info(
                             "Mapping role affiliation to DSpace group: '" + StringUtils.join(groupNames, ",") + "'");
                     }
 
@@ -373,7 +373,7 @@ public class ShibAuthentication implements AuthenticationMethod {
                             if (group != null) {
                                 groups.add(group);
                             } else {
-                                log.debug("Unable to find group: '" + groupNames[i].trim() + "'");
+                                log.info("Unable to find group: '" + groupNames[i].trim() + "'");
                             }
                         } catch (SQLException sqle) {
                             log.error(
