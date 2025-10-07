@@ -27,7 +27,6 @@ import org.dspace.app.rest.model.WorkflowItemRest;
 import org.dspace.app.rest.model.patch.Operation;
 import org.dspace.app.rest.model.patch.Patch;
 import org.dspace.app.rest.submit.SubmissionService;
-import org.dspace.app.util.SubmissionConfigReader;
 import org.dspace.app.util.SubmissionConfigReaderException;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.service.AuthorizeService;
@@ -40,6 +39,8 @@ import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.EPersonServiceImpl;
 import org.dspace.services.ConfigurationService;
+import org.dspace.submit.factory.SubmissionServiceFactory;
+import org.dspace.submit.service.SubmissionConfigService;
 import org.dspace.workflow.WorkflowException;
 import org.dspace.workflow.WorkflowService;
 import org.dspace.xmlworkflow.WorkflowConfigurationException;
@@ -70,6 +71,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class WorkflowItemRestRepository extends DSpaceRestRepository<WorkflowItemRest, Integer> {
 
     public static final String OPERATION_PATH_SECTIONS = "sections";
+    public static final String REQUESTPARAMETER_EXPUNGE = "expunge";
 
     private static final Logger log = LogManager.getLogger();
 
@@ -109,10 +111,10 @@ public class WorkflowItemRestRepository extends DSpaceRestRepository<WorkflowIte
     @Autowired
     protected XmlWorkflowFactory workflowFactory;
 
-    private final SubmissionConfigReader submissionConfigReader;
+    private SubmissionConfigService submissionConfigService;
 
     public WorkflowItemRestRepository() throws SubmissionConfigReaderException {
-        submissionConfigReader = new SubmissionConfigReader();
+        submissionConfigService = SubmissionServiceFactory.getInstance().getSubmissionConfigService();
     }
 
     @Override
@@ -238,13 +240,25 @@ public class WorkflowItemRestRepository extends DSpaceRestRepository<WorkflowIte
      * move the workflowitem back to the submitter workspace regardless to how the workflow is designed
      */
     protected void delete(Context context, Integer id) {
+        String expungeParam = getRequestService()
+            .getCurrentRequest()
+            .getServletRequest()
+            .getParameter(REQUESTPARAMETER_EXPUNGE);
+        boolean expunge = false;
+        if (expungeParam != null) {
+            expunge = Boolean.parseBoolean(expungeParam);
+        }
         XmlWorkflowItem witem = null;
         try {
             witem = wis.find(context, id);
             if (witem == null) {
                 throw new ResourceNotFoundException("WorkflowItem ID " + id + " not found");
             }
-            wfs.abort(context, witem, context.getCurrentUser());
+            if (expunge) {
+                wis.delete(context, witem);
+            } else {
+                wfs.abort(context, witem, context.getCurrentUser());
+            }
         } catch (AuthorizeException e) {
             throw new RESTAuthorizationException(e);
         } catch (SQLException e) {
