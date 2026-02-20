@@ -85,7 +85,9 @@
          <step id="traditionalpage1"/>
          <step id="traditionalpage2"/>
          <step id="upload"/>
+        <!--
          <step id="license"/>
+         -->
       </submission-process>
    </submission-definitions>
 </item-submission>
