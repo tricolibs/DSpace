@@ -336,7 +336,7 @@
          <step id="license"/>
          -->
       </submission-process>
-      
+
         <!--
         Submission Process for 'Publication' Entities.
         These are not to be confused with default Items, as Publications may be linked with other Entities
