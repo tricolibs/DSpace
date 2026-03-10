@@ -29,8 +29,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
-import javax.ws.rs.core.MediaType;
 
+import jakarta.ws.rs.core.MediaType;
 import org.apache.commons.io.IOUtils;
 import org.dspace.app.rest.matcher.CollectionMatcher;
 import org.dspace.app.rest.matcher.ItemMatcher;
@@ -913,6 +913,7 @@ public class WorkflowItemRestRepositoryIT extends AbstractControllerIntegrationT
      *
      * @throws Exception
      */
+    @Test
     public void validationErrorsRequiredMetadataTest() throws Exception {
         context.turnOffAuthorisationSystem();
 
@@ -936,6 +937,7 @@ public class WorkflowItemRestRepositoryIT extends AbstractControllerIntegrationT
         XmlWorkflowItem witem = WorkflowItemBuilder.createWorkflowItem(context, col1)
                 .withTitle("Workflow Item 1")
                 .withIssueDate("2017-10-17")
+                .grantLicense()
                 .build();
 
         //4. a workflow item without the dateissued required field
@@ -947,12 +949,12 @@ public class WorkflowItemRestRepositoryIT extends AbstractControllerIntegrationT
 
         String authToken = getAuthToken(eperson.getEmail(), password);
 
-        getClient(authToken).perform(get("/api/workflow/worfklowitems/" + witem.getID()))
+        getClient(authToken).perform(get("/api/workflow/workflowitems/" + witem.getID()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.errors").doesNotExist())
         ;
 
-        getClient(authToken).perform(get("/api/workflow/worfklowitems/" + witemMissingFields.getID()))
+        getClient(authToken).perform(get("/api/workflow/workflowitems/" + witemMissingFields.getID()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.errors[?(@.message=='error.validation.required')]",
                         Matchers.contains(

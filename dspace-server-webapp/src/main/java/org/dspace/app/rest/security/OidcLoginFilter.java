@@ -11,11 +11,11 @@ import static org.dspace.authenticate.OidcAuthenticationBean.OIDC_AUTH_ATTRIBUTE
 
 import java.io.IOException;
 import java.util.ArrayList;
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -27,11 +27,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 
 /**
- * This class will filter openID Connect requests and try and authenticate them.
+ * This class will filter OpenID Connect (OIDC) requests and try and authenticate them.
+ * In this case, the actual authentication is performed by OIDC. After authentication succeeds, OIDC will send
+ * the authentication data to this filter in order for it to be processed by DSpace.
  *
  * @author Pasquale Cavallo (pasquale.cavallo at 4science dot it)
  */
-
 public class OidcLoginFilter extends StatelessLoginFilter {
 
     private static final Logger log = LogManager.getLogger(OidcLoginFilter.class);
@@ -39,9 +40,9 @@ public class OidcLoginFilter extends StatelessLoginFilter {
     private final ConfigurationService configurationService = DSpaceServicesFactory.getInstance()
         .getConfigurationService();
 
-    public OidcLoginFilter(String url, AuthenticationManager authenticationManager,
+    public OidcLoginFilter(String url, String httpMethod, AuthenticationManager authenticationManager,
             RestAuthenticationService restAuthenticationService) {
-        super(url, authenticationManager, restAuthenticationService);
+        super(url, httpMethod, authenticationManager, restAuthenticationService);
     }
 
     @Override

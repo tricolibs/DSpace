@@ -20,8 +20,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import javax.annotation.Nullable;
 
+import jakarta.annotation.Nullable;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
@@ -494,7 +494,7 @@ public class MetadataImport extends DSpaceRunnable<MetadataImportScriptConfigura
 
                 // Check it has an owning collection
                 List<String> collections = line.get("collection");
-                if (collections == null) {
+                if (collections == null || collections.isEmpty()) {
                     throw new MetadataImportException(
                         "New items must have a 'collection' assigned in the form of a handle");
                 }

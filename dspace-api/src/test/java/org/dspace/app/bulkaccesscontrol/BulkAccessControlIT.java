@@ -1867,16 +1867,16 @@ public class BulkAccessControlIT extends AbstractIntegrationTestWithDatabase {
         context.restoreAuthSystemState();
 
         // JSON without constraints: apply to ALL items
-        String json = "{\n" +
-            " \"item\": {\n" +
-            "    \"mode\": \"add\",\n" +
-            "    \"accessConditions\": [\n" +
-            "      {\n" +
-            "          \"name\": \"openaccess\"\n" +
-            "      }\n" +
-            "    ]\n" +
-            "  }\n" +
-            "}";
+        String json = """
+            { "item": {
+                  "mode": "add",
+                  "accessConditions": [
+                      {
+                        "name": "openaccess"
+                      }
+                  ]
+               }}
+            """;
 
         buildJsonFile(json);
 
@@ -1901,7 +1901,7 @@ public class BulkAccessControlIT extends AbstractIntegrationTestWithDatabase {
                                                     int endIdx = msg.indexOf("}", startIdx);
                                                     return UUID.fromString(msg.substring(startIdx, endIdx));
                                                 })
-                                                .collect(Collectors.toList());
+                                                .toList();
 
         Set<UUID> uniqueUpdatedItemIDs = new HashSet<>(updatedItemIDs);
 

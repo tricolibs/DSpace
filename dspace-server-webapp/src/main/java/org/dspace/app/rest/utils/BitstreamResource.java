@@ -49,15 +49,13 @@ public class BitstreamResource extends AbstractResource {
     private final BitstreamService bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
     private final EPersonService ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
     private final CitationDocumentService citationDocumentService =
-        new DSpace().getServiceManager()
-            .getServicesByType(CitationDocumentService.class).get(0);
+            new DSpace().getServiceManager()
+                    .getServicesByType(CitationDocumentService.class).get(0);
 
-    private String documentEtag;
-    private long documentLength;
-    private InputStream documentInputStream = null;
+    private BitstreamDocument document;
 
     public BitstreamResource(String name, UUID uuid, UUID currentUserUUID, Set<UUID> currentSpecialGroups,
-        boolean shouldGenerateCoverPage) {
+                             boolean shouldGenerateCoverPage) {
         this.name = name;
         this.uuid = uuid;
         this.currentUserUUID = currentUserUUID;
@@ -74,7 +72,7 @@ public class BitstreamResource extends AbstractResource {
      * @return a byte array containing the cover page
      */
     private byte[] getCoverpageByteArray(Context context, Bitstream bitstream)
-        throws IOException, SQLException, AuthorizeException {
+            throws IOException, SQLException, AuthorizeException {
         try {
             var citedDocument = citationDocumentService.makeCitedDocument(context, bitstream);
             return citedDocument.getLeft();
@@ -94,7 +92,7 @@ public class BitstreamResource extends AbstractResource {
     public InputStream getInputStream() throws IOException {
         fetchDocument();
 
-        return this.documentInputStream;
+        return document.inputStream();
     }
 
     @Override
@@ -106,17 +104,17 @@ public class BitstreamResource extends AbstractResource {
     public long contentLength() {
         fetchDocument();
 
-        return this.documentLength;
+        return document.length();
     }
 
     public String getChecksum() {
         fetchDocument();
 
-        return this.documentEtag;
+        return document.etag();
     }
 
     private void fetchDocument() {
-        if (this.documentInputStream != null) {
+        if (document != null) {
             return;
         }
 
@@ -125,22 +123,19 @@ public class BitstreamResource extends AbstractResource {
             if (shouldGenerateCoverPage) {
                 var coverPage = getCoverpageByteArray(context, bitstream);
 
-                this.documentEtag = etag(bitstream);
-                this.documentLength = coverPage.length;
-                this.documentInputStream = new ByteArrayInputStream(coverPage);
-
+                this.document = new BitstreamDocument(etag(bitstream),
+                        coverPage.length,
+                        new ByteArrayInputStream(coverPage));
             } else {
-
-                this.documentEtag = bitstream.getChecksum();
-                this.documentLength = bitstream.getSizeBytes();
-                this.documentInputStream = bitstreamService.retrieve(context, bitstream);
-
+                this.document = new BitstreamDocument(bitstream.getChecksum(),
+                        bitstream.getSizeBytes(),
+                        bitstreamService.retrieve(context, bitstream));
             }
         } catch (SQLException | AuthorizeException | IOException e) {
             throw new RuntimeException(e);
         }
 
-        LOG.debug("fetched document {} {} {}", shouldGenerateCoverPage, this.documentEtag, this.documentLength);
+        LOG.debug("fetched document {} {}", shouldGenerateCoverPage, document);
     }
 
     private String etag(Bitstream bitstream) {
@@ -170,4 +165,5 @@ public class BitstreamResource extends AbstractResource {
         return context;
     }
 
+    private record BitstreamDocument(String etag, long length, InputStream inputStream) {}
 }

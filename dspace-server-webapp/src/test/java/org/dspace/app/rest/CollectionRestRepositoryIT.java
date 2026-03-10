@@ -1473,6 +1473,7 @@ public class CollectionRestRepositoryIT extends AbstractControllerIntegrationTes
         authorizeService.removePoliciesActionFilter(context, eperson, Constants.WRITE);
     }
 
+    @Test
     public void patchCollectionMetadataAuthorized() throws Exception {
         runPatchMetadataTests(admin, 200);
     }
@@ -3163,7 +3164,7 @@ public class CollectionRestRepositoryIT extends AbstractControllerIntegrationTes
         getClient(token)
             .perform(patch("/api/core/collections/" + col.getID())
             .content(requestBody)
-            .contentType(javax.ws.rs.core.MediaType.APPLICATION_JSON_PATCH_JSON))
+            .contentType(jakarta.ws.rs.core.MediaType.APPLICATION_JSON_PATCH_JSON))
             .andExpect(status().isOk())
             .andExpect(
                  jsonPath("$.metadata",
@@ -3221,7 +3222,7 @@ public class CollectionRestRepositoryIT extends AbstractControllerIntegrationTes
         String patchBody = getPatchContent(updateTitle);
         getClient(adminToken).perform(patch("/api/core/collections/" + col.getID())
                              .content(patchBody)
-                             .contentType(javax.ws.rs.core.MediaType.APPLICATION_JSON_PATCH_JSON))
+                             .contentType(jakarta.ws.rs.core.MediaType.APPLICATION_JSON_PATCH_JSON))
                              .andExpect(status().isOk())
                              .andExpect(jsonPath("$.metadata['dc.title'][0].value", is("New Name")));
 

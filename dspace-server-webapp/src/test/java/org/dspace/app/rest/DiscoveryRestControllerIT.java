@@ -26,13 +26,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.time.Period;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.matchers.JsonPathMatchers;
 import org.apache.commons.codec.CharEncoding;
 import org.apache.commons.io.IOUtils;
+import org.dspace.app.ldn.NotifyServiceEntity;
+import org.dspace.app.ldn.model.Notification;
 import org.dspace.app.rest.matcher.AppliedFilterMatcher;
 import org.dspace.app.rest.matcher.FacetEntryMatcher;
 import org.dspace.app.rest.matcher.FacetValueMatcher;
@@ -51,6 +56,8 @@ import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.EPersonBuilder;
 import org.dspace.builder.GroupBuilder;
 import org.dspace.builder.ItemBuilder;
+import org.dspace.builder.LDNMessageBuilder;
+import org.dspace.builder.NotifyServiceBuilder;
 import org.dspace.builder.PoolTaskBuilder;
 import org.dspace.builder.SupervisionOrderBuilder;
 import org.dspace.builder.WorkflowItemBuilder;
@@ -105,6 +112,28 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
      */
     List<Matcher<? super Object>> customSortFields = List.of(
     );
+
+    /**
+     * Original value of the discovery.highlights.escape-html property, saved here to restore it after running the
+     * tests.
+     */
+    boolean escapeHTML;
+
+    @Override
+    public void setUp() throws Exception {
+        super.setUp();
+        context.turnOffAuthorisationSystem();
+        escapeHTML = configurationService.getBooleanProperty("discovery.highlights.escape-html");
+        context.restoreAuthSystemState();
+    }
+
+    @Override
+    public void destroy() throws Exception {
+        context.turnOffAuthorisationSystem();
+        configurationService.setProperty("discovery.highlights.escape-html", escapeHTML);
+        context.restoreAuthSystemState();
+        super.destroy();
+    }
 
     @Test
     public void rootDiscoverTest() throws Exception {
@@ -2471,7 +2500,7 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 .withAuthor("test2, test2").withAuthor("Maybe, Maybe")
                 .withSubject("AnotherTest").withSubject("TestingForMore")
                 .withSubject("ExtraEntry")
-                .withEmbargoPeriod("12 months")
+                .withEmbargoPeriod(Period.ofMonths(12))
                 .build();
 
         //Turn on the authorization again
@@ -2777,7 +2806,9 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
     /**
      * This test verifies that
      * {@link org.dspace.discovery.indexobject.InprogressSubmissionIndexFactoryImpl#storeInprogressItemFields}
-     * indexes the owning collection of workspace items
+     * indexes the owning collection of workspace items.
+     *
+     * @throws java.lang.Exception passed through.
      */
     @Test
     public void discoverSearchObjectsTestForWorkspaceItemInCollectionScope() throws Exception {
@@ -2828,7 +2859,8 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
     /**
      * This test verifies that
      * {@link org.dspace.discovery.indexobject.InprogressSubmissionIndexFactoryImpl#storeInprogressItemFields}
-     * indexes the owning collection of workflow items
+     * indexes the owning collection of workflow items.
+     * @throws java.lang.Exception passed through.
      */
     @Test
     public void discoverSearchObjectsTestForWorkflowItemInCollectionScope() throws Exception {
@@ -6870,4 +6902,186 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
             .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")));
     }
 
+    @Test
+    public void discoverSearchObjectsNOTIFYIncomingConfigurationTest() throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+
+        context.turnOffAuthorisationSystem();
+
+        Community community = CommunityBuilder.createCommunity(context)
+                                              .withName("community")
+                                              .build();
+        Collection collection = CollectionBuilder.createCollection(context, community)
+                                                 .withName("collection")
+                                                 .build();
+
+        Item item = ItemBuilder.createItem(context, collection)
+                               .withTitle("item title")
+                               .build();
+
+        String object = configurationService.getProperty("dspace.ui.url") + "/handle/" + item.getHandle();
+
+        NotifyServiceEntity notifyService =
+            NotifyServiceBuilder.createNotifyServiceBuilder(context, "service name")
+                                .withDescription("service description")
+                                .withUrl("service url")
+                                .withLdnUrl("https://overlay-journal.com/inbox/")
+                                .build();
+
+        InputStream announceEndorsementStream = getClass().getResourceAsStream("ldn_announce_endorsement.json");
+        String announceEndorsement = IOUtils.toString(announceEndorsementStream, Charset.defaultCharset());
+        announceEndorsementStream.close();
+
+        String message = announceEndorsement.replaceAll("<<object>>", object);
+        message = message.replaceAll("<<object_handle>>", object);
+        Notification notification = mapper.readValue(message, Notification.class);
+        LDNMessageBuilder.createNotifyServiceBuilder(context, notification).build();
+
+        context.restoreAuthSystemState();
+
+        String adminToken = getAuthToken(admin.getEmail(), password);
+        getClient(adminToken)
+            .perform(get("/api/discover/search/objects").param("configuration", "NOTIFY.incoming"))
+            //** THEN **
+            //The status has to be 200 OK
+            .andExpect(status().isOk())
+            //The type has to be 'discover'
+            .andExpect(jsonPath("$.type", is("discover")))
+            //There needs to be a page object that shows the total pages and total elements as well as the
+            // size and the current page (number)
+            .andExpect(jsonPath("$._embedded.searchResult.page", is(
+                PageMatcher.pageEntryWithTotalPagesAndElements(0, 20, 1, 1)
+            )))
+            .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
+                FacetEntryMatcher.relatedItemFacet(false),
+                FacetEntryMatcher.originFacet(false),
+                FacetEntryMatcher.targetFacet(false),
+                FacetEntryMatcher.queueStatusFacet(false),
+                FacetEntryMatcher.activityStreamTypeFacet(false),
+                FacetEntryMatcher.coarNotifyTypeFacet(false),
+                FacetEntryMatcher.notificationTypeFacet(false)
+            )))
+            //There always needs to be a self link
+            .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")));
+    }
+
+    @Test
+    public void discoverSearchObjectsNOTIFYOutgoingConfigurationTest() throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+
+        context.turnOffAuthorisationSystem();
+
+        Community community = CommunityBuilder.createCommunity(context)
+                                              .withName("community")
+                                              .build();
+        Collection collection = CollectionBuilder.createCollection(context, community)
+                                                 .withName("collection")
+                                                 .build();
+
+        Item item = ItemBuilder.createItem(context, collection)
+                               .withTitle("item title")
+                               .build();
+
+        String object = configurationService.getProperty("dspace.ui.url") + "/handle/" + item.getHandle();
+
+        NotifyServiceEntity notifyService =
+            NotifyServiceBuilder.createNotifyServiceBuilder(context, "service name")
+                                .withDescription("service description")
+                                .withUrl("service url")
+                                .withLdnUrl("https://generic-service.com/system/inbox/")
+                                .build();
+
+        InputStream announceReviewStream = getClass().getResourceAsStream("ldn_announce_review.json");
+        String announceReview = IOUtils.toString(announceReviewStream, Charset.defaultCharset());
+        announceReviewStream.close();
+
+
+        String message = announceReview.replaceAll("<<object>>", object);
+        message = message.replaceAll("<<object_handle>>", object);
+        Notification notification = mapper.readValue(message, Notification.class);
+        LDNMessageBuilder.createNotifyServiceBuilder(context, notification).build();
+
+        context.restoreAuthSystemState();
+
+        String adminToken = getAuthToken(admin.getEmail(), password);
+        getClient(adminToken)
+            .perform(get("/api/discover/search/objects").param("configuration", "NOTIFY.outgoing"))
+            //** THEN **
+            //The status has to be 200 OK
+            .andExpect(status().isOk())
+            //The type has to be 'discover'
+            .andExpect(jsonPath("$.type", is("discover")))
+            //There needs to be a page object that shows the total pages and total elements as well as the
+            // size and the current page (number)
+            .andExpect(jsonPath("$._embedded.searchResult.page", is(
+                PageMatcher.pageEntryWithTotalPagesAndElements(0, 20, 1, 1)
+            )))
+            .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
+                FacetEntryMatcher.relatedItemFacet(false),
+                FacetEntryMatcher.originFacet(false),
+                FacetEntryMatcher.targetFacet(false),
+                FacetEntryMatcher.queueStatusFacet(false),
+                FacetEntryMatcher.activityStreamTypeFacet(false),
+                FacetEntryMatcher.coarNotifyTypeFacet(false),
+                FacetEntryMatcher.notificationTypeFacet(false)
+            )))
+            //There always needs to be a self link
+            .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")));
+    }
+
+    @Test
+    public void discoverSearchObjectsFirstEscapeHTMLTagsBeforeApplyingHitHighlights() throws Exception {
+        context.turnOffAuthorisationSystem();
+        configurationService.setProperty("discovery.highlights.escape-html", true);
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+
+        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity)
+                                           .withName("Collection")
+                                           .build();
+
+        ItemBuilder.createItem(context, col1)
+                                .withTitle("This is a <a>test</a> title")
+                                .build();
+        context.restoreAuthSystemState();
+
+        // This test proves that the HTML tags that are in the original metadata, like <a>test</a>,
+        // are now escaped and should be returned like &lt;a&gt;test&lt;&#x2F;a&gt;
+        // Only after this happens should the hit highlights be applied
+        getClient().perform(get("/api/discover/search/objects")
+                                    .param("query", "title"))
+                             .andExpect(status().isOk())
+                             .andExpect(jsonPath(
+                                     "$._embedded.searchResult._embedded.objects[0].hitHighlights['dc.title']",
+                                     contains("This is a &lt;a&gt;test&lt;&#x2F;a&gt; <em>title</em>")));
+    }
+
+    @Test
+    public void discoverSearchObjectsDontEscapeHTMLTagsBeforeApplyingHitHighlights() throws Exception {
+        context.turnOffAuthorisationSystem();
+        configurationService.setProperty("discovery.highlights.escape-html", false);
+        parentCommunity = CommunityBuilder.createCommunity(context)
+            .withName("Parent Community")
+            .build();
+
+        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity)
+            .withName("Collection")
+            .build();
+
+        ItemBuilder.createItem(context, col1)
+            .withTitle("This is a <a>test</a> title")
+            .build();
+        context.restoreAuthSystemState();
+
+        // This test proves that the HTML tags that are in the original metadata, like <a>test</a>,
+        // are not escaped and should be returned like <a>test</a>
+        // Only after this happens should the hit highlights be applied
+        getClient().perform(get("/api/discover/search/objects")
+                                .param("query", "title"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath(
+                "$._embedded.searchResult._embedded.objects[0].hitHighlights['dc.title']",
+                contains("This is a <a>test</a> <em>title</em>")));
+    }
 }

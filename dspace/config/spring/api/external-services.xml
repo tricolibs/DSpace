@@ -59,6 +59,19 @@
         </property>
     </bean>
 
+    <!-- DOI generic importer -->
+    <bean id="doiLiveImportDataProvider" class="org.dspace.external.provider.impl.LiveImportDataProvider">
+        <property name="metadataSource" ref="DoiImportService"/>
+        <property name="sourceIdentifier" value="doi"/>
+        <property name="recordIdMetadata" value="dc.identifier.doi"/>
+        <property name="supportedEntityTypes">
+            <list>
+                <value>Publication</value>
+                <value>none</value>
+            </list>
+        </property>
+    </bean>
+
     <!-- European Patent Office (EPO) importer -->
     <bean id="epoLiveImportDataProvider" class="org.dspace.external.provider.impl.LiveImportDataProvider">
         <property name="metadataSource" ref="EpoImportService"/>
@@ -76,6 +89,31 @@
     <bean id="adsLiveImportDataProvider" class="org.dspace.external.provider.impl.LiveImportDataProvider">
         <property name="metadataSource" ref="ADSImportService"/>
         <property name="sourceIdentifier" value="ads"/>
+        <property name="recordIdMetadata" value="dc.identifier.other"/>
+        <property name="supportedEntityTypes">
+            <list>
+                <value>Publication</value>
+                <value>none</value>
+            </list>
+        </property>
+    </bean>
+
+    <!-- OpenAIRE importers -->
+    <bean id="openaireLiveImportDataProviderByAuthor" class="org.dspace.external.provider.impl.LiveImportDataProvider">
+        <property name="metadataSource" ref="openaireImportServiceByAuthor"/>
+        <property name="sourceIdentifier" value="openaire"/>
+        <property name="recordIdMetadata" value="dc.identifier.other"/>
+        <property name="supportedEntityTypes">
+            <list>
+                <value>Publication</value>
+                <value>none</value>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="openaireLiveImportDataProviderByTitle" class="org.dspace.external.provider.impl.LiveImportDataProvider">
+        <property name="metadataSource" ref="openaireImportServiceByTitle"/>
+        <property name="sourceIdentifier" value="openaireTitle"/>
         <property name="recordIdMetadata" value="dc.identifier.other"/>
         <property name="supportedEntityTypes">
             <list>
@@ -135,6 +173,19 @@
             <list>
                 <value>Publication</value>
                 <value>none</value>
+            </list>
+        </property>
+    </bean>
+
+    <!-- Research Organization Registry (ROR) importer -->
+    <bean id="rorDataProvider" class="org.dspace.external.provider.impl.LiveImportDataProvider" >
+        <property name="metadataSource" ref="rorImportService"/>
+        <property name="sourceIdentifier" value="ror"/>
+        <property name="recordIdMetadata" value="organization.identifier.ror"/>
+        <property name="displayMetadata" value="organization.legalName"/>
+        <property name="supportedEntityTypes">
+            <list>
+                <value>OrgUnit</value>
             </list>
         </property>
     </bean>

@@ -30,9 +30,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
-import javax.ws.rs.core.MediaType;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.ws.rs.core.MediaType;
 import org.apache.commons.codec.CharEncoding;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;

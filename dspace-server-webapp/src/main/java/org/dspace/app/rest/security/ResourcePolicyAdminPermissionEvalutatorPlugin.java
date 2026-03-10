@@ -13,6 +13,8 @@ import java.util.UUID;
 
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.model.ResourcePolicyRest;
 import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.app.util.factory.UtilServiceFactory;
@@ -23,8 +25,6 @@ import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
 import org.dspace.services.RequestService;
 import org.dspace.services.model.Request;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.security.core.Authentication;
@@ -39,7 +39,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ResourcePolicyAdminPermissionEvalutatorPlugin extends RestObjectPermissionEvaluatorPlugin {
 
-    private static final Logger log = LoggerFactory.getLogger(ResourcePolicyRestPermissionEvaluatorPlugin.class);
+    private static final Logger log = LogManager.getLogger();
 
     public static final String RESOURCE_POLICY_TYPE = "resourcepolicy";
 
@@ -79,7 +79,7 @@ public class ResourcePolicyAdminPermissionEvalutatorPlugin extends RestObjectPer
             return authorizeService.isAdmin(context, dso);
 
         } catch (SQLException e) {
-            log.error(e.getMessage(), e);
+            log.error(e::getMessage, e);
         }
         return false;
     }
