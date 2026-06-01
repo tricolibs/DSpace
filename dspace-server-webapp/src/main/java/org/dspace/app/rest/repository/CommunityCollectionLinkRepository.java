@@ -89,7 +89,9 @@ public class CommunityCollectionLinkRepository extends AbstractDSpaceRestReposit
                 Collection c = ((IndexableCollection) solrCol).getIndexedObject();
                 collections.add(c);
             }
-            return converter.toRestPage(collections, pageable, tot, utils.obtainProjection());
+            Page<CollectionRest> restPage = converter.toRestPage(collections, pageable, tot, utils.obtainProjection());
+            context.restoreAuthSystemState();
+            return restPage;
         } catch (SQLException | SearchServiceException e) {
             throw new RuntimeException(e.getMessage(), e);
         }
