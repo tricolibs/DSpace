@@ -211,7 +211,9 @@ public class CommunityRestRepository extends DSpaceObjectRestRepository<Communit
                 Community c = ((IndexableCommunity) solrCommunities).getIndexedObject();
                 topLevelCommunities.add(c);
             }
-            return converter.toRestPage(topLevelCommunities, pageable, tot, utils.obtainProjection());
+            Page<CommunityRest> restPage = converter.toRestPage(topLevelCommunities, pageable, tot, utils.obtainProjection());
+            context.restoreAuthSystemState();
+            return restPage;
         } catch (SearchServiceException e) {
             throw new RuntimeException(e.getMessage(), e);
         }
